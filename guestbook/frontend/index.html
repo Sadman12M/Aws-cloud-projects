@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mirza's Guestbook</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    h1 { color: #333; }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      box-sizing: border-box;
+    }
+    button {
+      background: #ff9900;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .message {
+      background: white;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📖 Mirza's AWS Guestbook</h1>
+  <p>Leave a message below!</p>
+
+  <input type="text" id="name" placeholder="Your name">
+  <textarea id="message" placeholder="Your message" rows="3"></textarea>
+  <button onclick="saveMessage()">Submit</button>
+
+  <h2>Messages</h2>
+  <div id="messages">Loading...</div>
+
+  <script>
+    const API_URL = "https://dcgar0slwi.execute-api.ap-south-1.amazonaws.com/messages";
+
+    async function saveMessage() {
+      const name = document.getElementById('name').value;
+      const message = document.getElementById('message').value;
+
+      if (!name || !message) {
+        alert("Please fill in both fields!");
+        return;
+      }
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, message })
+        });
+        const data = await response.json();
+        if (data.success) {
+          document.getElementById('name').value = '';
+          document.getElementById('message').value = '';
+          loadMessages();
+        } else {
+          alert("Error: " + data.error);
+        }
+      } catch (err) {
+        alert("Failed to save: " + err);
+      }
+    }
+
+    async function loadMessages() {
+      try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        const container = document.getElementById('messages');
+        container.innerHTML = '';
+        data.messages.forEach(msg => {
+          container.innerHTML += `<div class="message"><strong>${msg.name}</strong>: ${msg.message}</div>`;
+        });
+      } catch (err) {
+        document.getElementById('messages').innerHTML = "Failed to load messages.";
+      }
+    }
+
+    loadMessages();
+  </script>
+
+</body>
+</html>
